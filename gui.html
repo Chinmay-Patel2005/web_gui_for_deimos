@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mars Rover GUI</title>
+    <link rel="stylesheet" href="gui.css">
+    <!-- Load roslib.js -->
+    <script src="https://unpkg.com/eventemitter3@latest/dist/eventemitter3.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Video Feed Container -->
+        <div class="video-container">
+            <video id="rover-video" controls autoplay>
+                <source src="path_to_video.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+        <!-- WASD Control Buttons -->
+        <div class="controls-container">
+            <button id="btn-w" onclick="publishDirection('W')">W</button>
+            <button id="btn-a" onclick="publishDirection('A')">A</button>
+            <button id="btn-s" onclick="publishDirection('S')">S</button>
+            <button id="btn-d" onclick="publishDirection('D')">D</button>
+        </div>
+
+        <!-- Value Containers -->
+        <div class="values-container">
+            <div class="value-box" id="value1">Speed: 0</div>
+            <div class="value-box" id="value2">Battery: 100%</div>
+            <div class="value-box" id="value3">Temperature: 25°C</div>
+            <div class="value-box" id="value4">Distance: 0m</div>
+        </div>
+    </div>
+
+    <!-- Load your custom script after roslib.js -->
+    <script src="gui.js"></script>
+</body>
+</html>
