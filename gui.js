@@ -1,4 +1,3 @@
-// script.js
 document.addEventListener('DOMContentLoaded', () => {
     // Map keypresses to button clicks
     document.addEventListener('keydown', (event) => {
@@ -26,15 +25,15 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keyup', (event) => {
         switch (event.key.toLowerCase()) {
             case 'w':
-                removeHighlight('btn-w');
-                break;
-            case 'a':
-                removeHighlight('btn-a');
-                break;
             case 's':
+                stopMovement();
+                removeHighlight('btn-w');
                 removeHighlight('btn-s');
                 break;
+            case 'a':
             case 'd':
+                stopMovement();
+                removeHighlight('btn-a');
                 removeHighlight('btn-d');
                 break;
         }
@@ -42,8 +41,44 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function move(direction) {
-    console.log(`Moving ${direction}`);
-    // Add your logic to send commands to the rover
+    let linearX = 0;
+    let angularZ = 0;
+    
+    // Define speed parameters
+    const linearSpeed = 0.2;  // Adjust these values as needed
+    const angularSpeed = 0.5;
+
+    switch (direction) {
+        case 'W':  // Move forward
+            linearX = linearSpeed;
+            break;
+        case 'S':  // Move backward
+            linearX = -linearSpeed;
+            break;
+        case 'A':  // Turn left
+            angularZ = angularSpeed;
+            break;
+        case 'D':  // Turn right
+            angularZ = -angularSpeed;
+            break;
+    }
+
+    // Publish the velocity command
+    const message = new ROSLIB.Message({
+        linear: { x: linearX, y: 0, z: 0 },
+        angular: { x: 0, y: 0, z: angularZ }
+    });
+    cmdVelTopic.publish(message);
+    console.log(`Published movement command: linearX=${linearX}, angularZ=${angularZ}`);
+}
+
+function stopMovement() {
+    const message = new ROSLIB.Message({
+        linear: { x: 0, y: 0, z: 0 },
+        angular: { x: 0, y: 0, z: 0 }
+    });
+    cmdVelTopic.publish(message);
+    console.log('Published stop command');
 }
 
 function highlightButton(buttonId) {
@@ -59,12 +94,7 @@ function updateValue(id, value) {
     document.getElementById(id).textContent = value;
 }
 
-// Example updates (these could be from a live data feed)
-updateValue('value1', 'Speed: 10m/s');
-updateValue('value2', 'Battery: 95%');
-updateValue('value3', 'Temperature: 20°C');
-updateValue('value4', 'Distance: 150m');
-
+// ROS connection setup
 const ros = new ROSLIB.Ros({
     url: 'ws://localhost:9090'  // Replace with your ROS bridge address
 });
@@ -81,21 +111,12 @@ ros.on('close', () => {
     console.log('Connection to ROS closed');
 });
 
-// Publisher for directions
-const directionTopic = new ROSLIB.Topic({
+// Publisher for velocity commands
+const cmdVelTopic = new ROSLIB.Topic({
     ros: ros,
-    name: '/mars_rover/direction',
-    messageType: 'std_msgs/String'
+    name: '/cmd_vel',
+    messageType: 'geometry_msgs/Twist'
 });
-
-function publishDirection(direction) {
-    const message = new ROSLIB.Message({
-        data: direction
-    });
-    directionTopic.publish(message);
-    console.log(`Published direction: ${direction}`);
-    highlightButton(`btn-${direction.toLowerCase()}`);
-}
 
 // Subscriber for telemetry data
 const telemetryTopic = new ROSLIB.Topic({
@@ -111,4 +132,17 @@ telemetryTopic.subscribe((message) => {
     updateValue('value3', `Temperature: ${data.temperature}°C`);
     updateValue('value4', `Distance: ${data.distance} m`);
     console.log('Telemetry data received: ', data);
+});
+
+// Subscriber for TurtleBot speed data from /odom topic
+const odomTopic = new ROSLIB.Topic({
+    ros: ros,
+    name: '/odom',
+    messageType: 'nav_msgs/Odometry'
+});
+
+odomTopic.subscribe((message) => {
+    const speed = message.twist.twist.linear.x;  // Linear speed in x direction
+    updateValue('value1', `Speed: ${speed.toFixed(2)} m/s`);
+    console.log('TurtleBot speed received: ', speed);
 });
