@@ -1,4 +1,7 @@
+var linearX = 0;
+var angularZ = 0;
 document.addEventListener('DOMContentLoaded', () => {
+    
     // Map keypresses to button clicks
     document.addEventListener('keydown', (event) => {
         switch (event.key.toLowerCase()) {
@@ -11,13 +14,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 highlightButton('btn-a');
                 break;
             case 's':
-                move('S');
+                stopMovement();
                 highlightButton('btn-s');
                 break;
             case 'd':
                 move('D');
                 highlightButton('btn-d');
                 break;
+            case 'x':
+               move('X');
+               highlightButton('btn-x');
+               break;
         }
     });
 
@@ -25,41 +32,42 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keyup', (event) => {
         switch (event.key.toLowerCase()) {
             case 'w':
-            case 's':
-                stopMovement();
                 removeHighlight('btn-w');
-                removeHighlight('btn-s');
+                break;
+            
                 break;
             case 'a':
             case 'd':
-                stopMovement();
+            case 'x':
                 removeHighlight('btn-a');
                 removeHighlight('btn-d');
+                removeHighlight('btn-x');
                 break;
+            case 's':
+                stopMovement();
+                removeHighlight('btn-s');
         }
     });
 });
 
 function move(direction) {
-    let linearX = 0;
-    let angularZ = 0;
     
     // Define speed parameters
     const linearSpeed = 0.2;  // Adjust these values as needed
-    const angularSpeed = 0.5;
+    const angularSpeed = 0.4;
 
     switch (direction) {
         case 'W':  // Move forward
-            linearX = linearSpeed;
+            linearX = linearX+linearSpeed;
             break;
-        case 'S':  // Move backward
-            linearX = -linearSpeed;
+        case 'X':  // Move backward
+            linearX = linearX-linearSpeed;
             break;
         case 'A':  // Turn left
-            angularZ = angularSpeed;
+            angularZ = angularZ+angularSpeed;
             break;
         case 'D':  // Turn right
-            angularZ = -angularSpeed;
+            angularZ = angularZ-angularSpeed;
             break;
     }
 
